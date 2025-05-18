@@ -98,7 +98,60 @@ class MainWindow(QMainWindow):
 
 
 class EditDialog(QDialog):
-    pass
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Edit Student Data")
+        self.setFixedWidth(300)
+        self.setFixedHeight(300)
+
+        layout = QVBoxLayout()
+
+        # Get student name
+        index = age_calculator.table.currentRow()
+        student_name = age_calculator.table.item(index, 1).text()
+
+        self.student_id = age_calculator.table.item(index, 0).text()
+
+        # Student name widget
+        self.student_name = QLineEdit(student_name)
+        self.student_name.setPlaceholderText("Name")
+        layout.addWidget(self.student_name)
+
+        # course selection widget
+        course = age_calculator.table.item(index, 2).text()
+        self.course_name = QComboBox()
+        courses = ["Biology", "Math", "Astronomy", "Physics"]
+        self.course_name.addItems(courses)
+        self.course_name.setCurrentText(course)
+        layout.addWidget(self.course_name)
+        
+        # widget for the phone
+        mobile = age_calculator.table.item(index, 3).text()
+        self.mobile = QLineEdit()
+        self.mobile.setPlaceholderText("Mobile Tel")
+        layout.addWidget(self.mobile)
+
+        button = QPushButton("Submit")
+        button.clicked.connect(self.update)
+        layout.addWidget(button)
+
+        self.setLayout(layout)
+
+    def update(self):
+        connection = sqlite3.connect("database.db")
+        cursor = connection.cursor()
+        cursor.execute("UPDATE students SET name = ?, course = ?, mobile = ? WHERE ID = ?", 
+                       (
+                        self.student_name.text(), 
+                        self.course_name.itemText(self.course_name.currentIndex()), 
+                        self.mobile.text(), 
+                        self.student_id
+                        ))
+        connection.commit()
+        cursor.close()
+        connection.close()
+        # Refresh
+        age_calculator.load_data()
 
 
 class DeleteDialog(QDialog):
